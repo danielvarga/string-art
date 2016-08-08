@@ -1,8 +1,14 @@
 # String art
 
-Inspired by https://www.youtube.com/watch?v=ngGIkHFWwHM
+Tool calculating how to recreate an input image as [string art](https://en.wikipedia.org/wiki/String_art),
+that is, by arranging a single line of thread wound around a circle of nails.
 
-Usage:
+Inspired by
+
+[![String art](http://img.youtube.com/vi/ngGIkHFWwHM/0.jpg)](http://www.youtube.com/watch?v=ngGIkHFWwHM "String art")
+
+
+## Usage:
 
 ```python strings.py input-image.png output-prefix```
 
@@ -12,7 +18,7 @@ The output is in ```output-prefix.png```. There are two extra files showing inte
 ```output-prefix-allow-negative.png``` shows the string art when both black and white strings are allowed.
 ```output-prefix-unquantized.png``` shows the string art when infinitely thin and long threads are allowed (but only white).
 
-Example output:
+## Example output:
 
 Image with allow-negative:
 
@@ -22,6 +28,6 @@ Image unquantized:
 
 ![Trump unquantized](http://people.mokk.bme.hu/~daniel/trump-h180-r250-q50-c0.3-unquantized.png)
 
-Image final, created from ~12000 arcs. Assuming a circle of diameter 1 meter, that's ~10 kilometers of thread:
+Final image, created from ~12000 arcs. Assuming a circle of diameter 1 meter, this is ~10 kilometers of thread:
 
 ![Trump final](http://people.mokk.bme.hu/~daniel/trump-h180-r250-q50-c0.3.png)
