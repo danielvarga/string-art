@@ -15,15 +15,7 @@ def image(filename, size):
     return img
 
 
-def main():
-    filename, output_filename = sys.argv[1:]
-
-    n = 180
-    radius = 120
-
-    # square image with same center as the circle, sides are 95% of circle diameter.
-    img = image(filename, int(radius * 2 * 0.75))
-
+def build_adjecency_matrix(n, radius):
     print "building sparse adjecency matrix"
     hooks = np.array([[math.cos(np.pi*2*i/n), math.sin(np.pi*2*i/n)] for i in range(n)])
     hooks = (radius * hooks).astype(int)
@@ -43,7 +35,10 @@ def main():
     # creating the edge-pixel adjecency matrix:
     # rows are indexed with pixel codes, columns are indexed with edge codes.
     sparse = scipy.sparse.csr_matrix(([1.0]*len(row_ind), (row_ind, col_ind)), shape=((2*radius+1)*(2*radius+1), len(edge_codes)))
+    return sparse, hooks, edge_codes
 
+
+def build_image_vector(img, radius):
     # representing the input image as a sparse column vector of pixels:
     assert img.shape[0] == img.shape[1]
     img_size = img.shape[0]
@@ -58,7 +53,34 @@ def main():
             data.append(pixel_value)
             row_ind.append(pixel_code)
             col_ind.append(0)
-    sparse_b = scipy.sparse.csr_matrix((data, (row_ind, col_ind)), shape=(sparse.shape[0], 1))
+    sparse_b = scipy.sparse.csr_matrix((data, (row_ind, col_ind)), shape=((2*radius+1)*(2*radius+1), 1))
+    return sparse_b
+
+
+def reconstruct(x, sparse, radius):
+    b_approx = sparse.dot(x)
+    b_image = b_approx.reshape((2*radius+1, 2*radius+1))
+    b_image = np.clip(b_image, 0, 255)
+    return b_image
+
+
+def reconstruct_and_save(x, sparse, radius, filename):
+    b_image = reconstruct(x, sparse, radius)
+    imsave(filename, b_image)
+
+
+def main():
+    filename, output_prefix = sys.argv[1:]
+
+    n = 180
+    radius = 250
+
+    sparse, hooks, edge_codes = build_adjecency_matrix(n, radius)
+
+    # square image with same center as the circle, sides are 75% of circle diameter.
+    shrinkage = 0.75
+    img = image(filename, int(radius * 2 * shrinkage))
+    sparse_b = build_image_vector(img, radius)
 
     # finding the solution, a weighting of edges:
     print "solving linear system"
@@ -66,12 +88,16 @@ def main():
     result = scipy.sparse.linalg.lsqr(sparse, np.array(sparse_b.todense()).flatten())
     print "done"
     x = result[0]
+
+    reconstruct_and_save(x, sparse, radius, output_prefix+"-allow-negative.png")
+
     # negative values are clipped, they are physically unrealistic.
     x = np.clip(x, 0, 1e6)
 
-    # quantizing:
-    quantization_level = None # 50 is already quite good. None means no quantization.
+    reconstruct_and_save(x, sparse, radius, output_prefix+"-unquantized.png")
 
+    # quantizing:
+    quantization_level = 50 # 50 is already quite good. None means no quantization.
     # clip values larger than clip_factor times maximum.
     # (The long tail does not add too much to percieved quality.)
     clip_factor = 0.3
@@ -82,11 +108,7 @@ def main():
         # scale it back:
         x = x_quantized / quantization_level * max_edge_weight_orig
 
-    # reconstruction:
-    b_approx = sparse.dot(x)
-    b_image = b_approx.reshape((2*radius+1, 2*radius+1))
-    b_image = np.clip(b_image, 0, 255)
-    imsave(output_filename, b_image)
+    reconstruct_and_save(x, sparse, radius, output_prefix+".png")
 
     if quantization_level is not None:
         arc_count = 0
