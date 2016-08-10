@@ -3,7 +3,7 @@
 Tool calculating how to recreate an input image as [string art](https://en.wikipedia.org/wiki/String_art),
 that is, by arranging a single line of thread wound around a circle of nails.
 
-Inspired by
+Inspired by this video:
 
 [![String art](http://img.youtube.com/vi/ngGIkHFWwHM/0.jpg)](http://www.youtube.com/watch?v=ngGIkHFWwHM "String art")
 

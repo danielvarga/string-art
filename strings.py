@@ -15,7 +15,7 @@ def image(filename, size):
     return img
 
 
-def build_adjecency_matrix(n, radius):
+def build_arc_adjecency_matrix(n, radius):
     print "building sparse adjecency matrix"
     hooks = np.array([[math.cos(np.pi*2*i/n), math.sin(np.pi*2*i/n)] for i in range(n)])
     hooks = (radius * hooks).astype(int)
@@ -35,6 +35,29 @@ def build_adjecency_matrix(n, radius):
     # creating the edge-pixel adjecency matrix:
     # rows are indexed with pixel codes, columns are indexed with edge codes.
     sparse = scipy.sparse.csr_matrix(([1.0]*len(row_ind), (row_ind, col_ind)), shape=((2*radius+1)*(2*radius+1), len(edge_codes)))
+    return sparse, hooks, edge_codes
+
+
+def build_circle_adjecency_matrix(radius, small_radius):
+    print "building sparse adjecency matrix"
+    edge_codes = []
+    row_ind = []
+    col_ind = []
+    pixels = circle(small_radius)
+    for i, cx in enumerate(range(-radius+small_radius+1, radius-small_radius-1, 1)):
+        for j, cy in enumerate(range(-radius+small_radius+1, radius-small_radius-1, 1)):
+            edge_codes.append((i, j))
+            edge = []
+            for pixel in pixels:
+                px, py = cx+pixel[0], cy+pixel[1]
+                pixel_code = (py+radius)*(radius*2+1) + (px+radius)
+                edge.append(pixel_code)
+            row_ind += edge
+            col_ind += [len(edge_codes)-1] * len(edge)
+    # creating the edge-pixel adjecency matrix:
+    # rows are indexed with pixel codes, columns are indexed with edge codes.
+    sparse = scipy.sparse.csr_matrix(([1.0]*len(row_ind), (row_ind, col_ind)), shape=((2*radius+1)*(2*radius+1), len(edge_codes)))
+    hooks = []
     return sparse, hooks, edge_codes
 
 
@@ -75,7 +98,8 @@ def main():
     n = 180
     radius = 250
 
-    sparse, hooks, edge_codes = build_adjecency_matrix(n, radius)
+    sparse, hooks, edge_codes = build_arc_adjecency_matrix(n, radius)
+    # sparse, hooks, edge_codes = build_circle_adjecency_matrix(radius, 10)
 
     # square image with same center as the circle, sides are 75% of circle diameter.
     shrinkage = 0.75
@@ -97,10 +121,10 @@ def main():
     reconstruct_and_save(x, sparse, radius, output_prefix+"-unquantized.png")
 
     # quantizing:
-    quantization_level = 50 # 50 is already quite good. None means no quantization.
+    quantization_level = 20 # 50 is already quite good. None means no quantization.
     # clip values larger than clip_factor times maximum.
     # (The long tail does not add too much to percieved quality.)
-    clip_factor = 0.3
+    clip_factor = 1.0
     if quantization_level is not None:
         max_edge_weight_orig = np.max(x)
         x_quantized = (x / np.max(x) * quantization_level).round()
@@ -121,10 +145,11 @@ def main():
             hook_index1, hook_index2 = edge_codes[edge_code]
             hook1, hook2 = hooks[hook_index1], hooks[hook_index2]
             distance = np.linalg.norm(hook1.astype(float) - hook2.astype(float)) / radius
-            total_distance += distance
+            total_distance += distance * multiplicity
         for multiplicity in range(max(hist.keys())+1):
             print multiplicity, hist[multiplicity]
         print "total arc count", arc_count
-        print "total distance (with unit radius)", total_distance
+        print "number of different arcs used", len(x_quantized[x_quantized>0])
+        print "total distance (assuming a unit diameter circle)", total_distance / 2 # unit diameter, not unit radius.
 
 main()
