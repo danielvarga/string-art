@@ -88,8 +88,27 @@ def reconstruct(x, sparse, radius):
 
 
 def reconstruct_and_save(x, sparse, radius, filename):
-    b_image = reconstruct(x, sparse, radius)
+    brightness_correction = 1.2
+    b_image = reconstruct(x * brightness_correction, sparse, radius)
     imsave(filename, b_image)
+
+
+def dump_arcs(solution, hooks, edge_codes, filename):
+    f = file(filename, "w")
+    n = len(hooks)
+    print >> f, n
+    for i, (x, y) in enumerate(hooks):
+        print >> f, "%d\t%f\t%f" % (i, x, y)
+    print >> f
+    assert len(edge_codes) == len(solution)
+    for (i, j), value in zip(edge_codes, solution):
+        if value==0:
+            continue
+        # int values are shown as ints.
+        if value==int(value):
+            value = int(value)
+        print >> f, "%d\t%d\t%s" % (i, j, str(value))
+    f.close()
 
 
 def main():
@@ -119,20 +138,23 @@ def main():
     x = np.clip(x, 0, 1e6)
 
     reconstruct_and_save(x, sparse, radius, output_prefix+"-unquantized.png")
+    dump_arcs(x, hooks, edge_codes, output_prefix+"-unquantized.txt")
 
     # quantizing:
-    quantization_level = 20 # 50 is already quite good. None means no quantization.
+    quantization_level = 60 # 50 is already quite good. None means no quantization.
     # clip values larger than clip_factor times maximum.
     # (The long tail does not add too much to percieved quality.)
-    clip_factor = 1.0
+    clip_factor = 0.3
     if quantization_level is not None:
         max_edge_weight_orig = np.max(x)
         x_quantized = (x / np.max(x) * quantization_level).round()
         x_quantized = np.clip(x_quantized, 0, int(np.max(x_quantized) * clip_factor))
         # scale it back:
         x = x_quantized / quantization_level * max_edge_weight_orig
+        dump_arcs(x_quantized, hooks, edge_codes, output_prefix+".txt")
 
     reconstruct_and_save(x, sparse, radius, output_prefix+".png")
+
 
     if quantization_level is not None:
         arc_count = 0
