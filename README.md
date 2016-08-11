@@ -34,6 +34,6 @@ Final image, created from ~12000 arcs. Assuming a circle of diameter 1 meter, th
 
 Don't try to be too cheap with the strings:
 
-![Bellucci, 15 quantization levels](http://people.mokk.bme.hu/~daniel/bellucci-h180-r250-q30-c0.5.png)
-![Bellucci, 5 quantization levels](http://people.mokk.bme.hu/~daniel/bellucci-h180-r250-q10-c1.png)
+![Bellucci, 15 quantization levels](http://people.mokk.bme.hu/~daniel/string-art/bellucci-h180-r250-q30-c0.5.png)
+![Bellucci, 5 quantization levels](http://people.mokk.bme.hu/~daniel/string-art/bellucci-h180-r250-q10-c1.png)
 
