@@ -73,7 +73,7 @@ def build_image_vector(img, radius):
             global_x = x - img_size//2
             global_y = y - img_size//2
             pixel_code = (global_y+radius)*(radius*2+1) + (global_x+radius)
-            data.append(pixel_value)
+            data.append(float(pixel_value))
             row_ind.append(pixel_code)
             col_ind.append(0)
     sparse_b = scipy.sparse.csr_matrix((data, (row_ind, col_ind)), shape=((2*radius+1)*(2*radius+1), 1))
@@ -124,12 +124,14 @@ def main():
     shrinkage = 0.75
     img = image(filename, int(radius * 2 * shrinkage))
     sparse_b = build_image_vector(img, radius)
+    # imsave(output_prefix+"-original.png", sparse_b.todense().reshape((2*radius+1, 2*radius+1)))
 
     # finding the solution, a weighting of edges:
     print "solving linear system"
     # note the .todense(). for some reason the sparse version did not work.
     result = scipy.sparse.linalg.lsqr(sparse, np.array(sparse_b.todense()).flatten())
     print "done"
+    # x, istop, itn, r1norm, r2norm, anorm, acond, arnorm = result
     x = result[0]
 
     reconstruct_and_save(x, sparse, radius, output_prefix+"-allow-negative.png")
@@ -141,7 +143,7 @@ def main():
     dump_arcs(x, hooks, edge_codes, output_prefix+"-unquantized.txt")
 
     # quantizing:
-    quantization_level = 60 # 50 is already quite good. None means no quantization.
+    quantization_level = 50 # 50 is already quite good. None means no quantization.
     # clip values larger than clip_factor times maximum.
     # (The long tail does not add too much to percieved quality.)
     clip_factor = 0.3
