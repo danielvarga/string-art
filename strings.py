@@ -3,7 +3,10 @@ import numpy as np
 import scipy
 import scipy.sparse
 import scipy.sparse.linalg
-from scipy.misc import imread, imresize, imsave
+from imageio import imread, imsave
+from skimage.transform import resize as imresize
+from skimage.color import rgb2gray
+
 import math
 from collections import defaultdict
 
@@ -11,12 +14,12 @@ from bresenham import *
 
 
 def image(filename, size):
-    img = imresize(imread(filename, flatten=True), (size, size))
+    img = imresize(rgb2gray(imread(filename)), (size, size))
     return img
 
 
 def build_arc_adjecency_matrix(n, radius):
-    print "building sparse adjecency matrix"
+    print("building sparse adjecency matrix")
     hooks = np.array([[math.cos(np.pi*2*i/n), math.sin(np.pi*2*i/n)] for i in range(n)])
     hooks = (radius * hooks).astype(int)
     edge_codes = []
@@ -39,7 +42,7 @@ def build_arc_adjecency_matrix(n, radius):
 
 
 def build_circle_adjecency_matrix(radius, small_radius):
-    print "building sparse adjecency matrix"
+    print("building sparse adjecency matrix")
     edge_codes = []
     row_ind = []
     col_ind = []
@@ -94,12 +97,12 @@ def reconstruct_and_save(x, sparse, radius, filename):
 
 
 def dump_arcs(solution, hooks, edge_codes, filename):
-    f = file(filename, "w")
+    f = open(filename, "w")
     n = len(hooks)
-    print >> f, n
+    print(n, file=f)
     for i, (x, y) in enumerate(hooks):
-        print >> f, "%d\t%f\t%f" % (i, x, y)
-    print >> f
+        print("%d\t%f\t%f" % (i, x, y), file=f)
+    print(file=f)
     assert len(edge_codes) == len(solution)
     for (i, j), value in zip(edge_codes, solution):
         if value==0:
@@ -107,7 +110,7 @@ def dump_arcs(solution, hooks, edge_codes, filename):
         # int values are shown as ints.
         if value==int(value):
             value = int(value)
-        print >> f, "%d\t%d\t%s" % (i, j, str(value))
+        print("%d\t%d\t%s" % (i, j, str(value)), file=f)
     f.close()
 
 
@@ -127,10 +130,10 @@ def main():
     # imsave(output_prefix+"-original.png", sparse_b.todense().reshape((2*radius+1, 2*radius+1)))
 
     # finding the solution, a weighting of edges:
-    print "solving linear system"
+    print("solving linear system")
     # note the .todense(). for some reason the sparse version did not work.
     result = scipy.sparse.linalg.lsqr(sparse, np.array(sparse_b.todense()).flatten())
-    print "done"
+    print("done")
     # x, istop, itn, r1norm, r2norm, anorm, acond, arnorm = result
     x = result[0]
 
@@ -143,7 +146,7 @@ def main():
     dump_arcs(x, hooks, edge_codes, output_prefix+"-unquantized.txt")
 
     # quantizing:
-    quantization_level = 50 # 50 is already quite good. None means no quantization.
+    quantization_level = 30 # 50 is already quite good. None means no quantization.
     # clip values larger than clip_factor times maximum.
     # (The long tail does not add too much to percieved quality.)
     clip_factor = 0.3
@@ -171,9 +174,9 @@ def main():
             distance = np.linalg.norm(hook1.astype(float) - hook2.astype(float)) / radius
             total_distance += distance * multiplicity
         for multiplicity in range(max(hist.keys())+1):
-            print multiplicity, hist[multiplicity]
-        print "total arc count", arc_count
-        print "number of different arcs used", len(x_quantized[x_quantized>0])
-        print "total distance (assuming a unit diameter circle)", total_distance / 2 # unit diameter, not unit radius.
+            print(multiplicity, hist[multiplicity])
+        print("total arc count", arc_count)
+        print("number of different arcs used", len(x_quantized[x_quantized>0]))
+        print("total distance (assuming a unit diameter circle)", total_distance / 2) # unit diameter, not unit radius.
 
 main()
