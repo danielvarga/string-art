@@ -3,9 +3,9 @@
 Tool calculating how to recreate an input image as [string art](https://en.wikipedia.org/wiki/String_art),
 that is, by arranging a single line of thread wound around a circle of nails.
 
-Inspired by this video:
+The video that originally inspired this is not on the web anymore, but this more recent one is similar:
 
-[![String art](http://img.youtube.com/vi/ngGIkHFWwHM/0.jpg)](http://www.youtube.com/watch?v=ngGIkHFWwHM "String art")
+[![Making Hyperrealistic Portraits With A Single Thread](http://img.youtube.com/vi/XJRVqzoQUG0/0.jpg)](http://www.youtube.com/watch?v=XJRVqzoQUG0 "String art")
 
 
 ## Usage:
@@ -22,18 +22,18 @@ The output is in ```output-prefix.png```. There are two extra files showing inte
 
 Image with allow-negative:
 
-![Trump allow-negative](http://people.mokk.bme.hu/~daniel/trump-h180-r250-q50-c0.3-allow-negative.png)
+![Trump allow-negative](./pics/trump-h180-r250-q50-c0.3-allow-negative.png)
 
 Image unquantized:
 
-![Trump unquantized](http://people.mokk.bme.hu/~daniel/trump-h180-r250-q50-c0.3-unquantized.png)
+![Trump unquantized](./pics/trump-h180-r250-q50-c0.3-unquantized.png)
 
 Final image, created from ~12000 arcs. Assuming a circle of diameter 1 meter, this is ~10 kilometers of thread:
 
-![Trump final](http://people.mokk.bme.hu/~daniel/trump-h180-r250-q50-c0.3.png)
+![Trump final](./pics/trump-h180-r250-q50-c0.3.png)
 
 Don't try to be too cheap with the strings:
 
-![Bellucci, 15 quantization levels](http://people.mokk.bme.hu/~daniel/string-art/bellucci-h180-r250-q30-c0.5.png)
-![Bellucci, 5 quantization levels](http://people.mokk.bme.hu/~daniel/string-art/bellucci-h180-r250-q10-c1.png)
+![Bellucci, 15 quantization levels](./pics/bellucci-h180-r250-q30-c0.5.png)
+![Bellucci, 5 quantization levels](./pics/bellucci-h180-r250-q10-c1.png)
 
